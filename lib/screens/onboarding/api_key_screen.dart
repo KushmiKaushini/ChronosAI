@@ -1,17 +1,67 @@
 // ============================================================================
 // ChronosAI — API Key Screen (Onboarding Step 2)
 // Author: K K K Ekanayake
-// Task: TASK-002 — Material 3 Dark Theme System + GoRouter Configuration
+// Task: TASK-005 — Wire Up Onboarding Flow
 //
-// TODO: Implement in Phase 2 (Core Data + Onboarding)
-// This is a placeholder screen for routing verification.
+// Validates Gemini API key format, saves to secure storage, and navigates
+// to permissions. Skip allows demo mode.
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class ApiKeyScreen extends StatelessWidget {
+import '../../services/secure_storage_service.dart';
+
+class ApiKeyScreen extends ConsumerStatefulWidget {
   const ApiKeyScreen({super.key});
+
+  @override
+  ConsumerState<ApiKeyScreen> createState() => _ApiKeyScreenState();
+}
+
+class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
+  final TextEditingController _controller = TextEditingController();
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Validates Gemini API key format (starts with "AIza" and is 39 chars).
+  bool _isValidApiKey(String key) {
+    final trimmed = key.trim();
+    return trimmed.startsWith('AIza') && trimmed.length >= 39;
+  }
+
+  Future<void> _onContinue() async {
+    final key = _controller.text.trim();
+
+    if (!_isValidApiKey(key)) {
+      setState(() {
+        _errorMessage = 'Invalid API key format. Gemini keys start with "AIza".';
+      });
+      return;
+    }
+
+    setState(() {
+      _errorMessage = null;
+    });
+
+    // Save to secure storage
+    await SecureStorageService.saveApiKey(key);
+
+    if (mounted) {
+      context.go('/onboarding/permissions');
+    }
+  }
+
+  void _onSkip() {
+    // Demo mode — no API key saved
+    context.go('/onboarding/permissions');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,27 +92,23 @@ class ApiKeyScreen extends StatelessWidget {
               ),
               const SizedBox(height: 48),
               TextField(
-                decoration: const InputDecoration(
+                controller: _controller,
+                decoration: InputDecoration(
                   hintText: 'AIza...',
                   labelText: 'API Key',
+                  errorText: _errorMessage,
                 ),
                 obscureText: true,
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => context.go('/onboarding/permissions'),
+                onPressed: _onContinue,
                 child: const Text('Continue'),
               ),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: () => context.go('/onboarding/permissions'),
+                onPressed: _onSkip,
                 child: const Text('Skip (Demo Mode)'),
-              ),
-              const Spacer(),
-              Text(
-                'TODO: Implement in Phase 2',
-                style: Theme.of(context).textTheme.bodySmall,
-                textAlign: TextAlign.center,
               ),
             ],
           ),

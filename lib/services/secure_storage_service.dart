@@ -3,29 +3,37 @@
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Service for securely storing sensitive data like API keys.
 class SecureStorageService {
+  static const _apiKeyKey = 'gemini_api_key';
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(
       encryptedSharedPreferences: true,
     ),
   );
 
-  static const _apiKeyKey = 'gemini_api_key';
-
-  /// Saves the Gemini API key to secure storage.
-  static Future<void> saveApiKey(String apiKey) async {
+  /// Save the Gemini API key securely (Android Keystore backed)
+  Future<void> saveApiKey(String apiKey) async {
     await _storage.write(key: _apiKeyKey, value: apiKey);
   }
 
-  /// Reads the Gemini API key from secure storage.
-  /// Returns null if no key is stored.
-  static Future<String?> readApiKey() async {
+  /// Retrieve the stored API key. Returns null if not set.
+  Future<String?> getApiKey() async {
     return await _storage.read(key: _apiKeyKey);
   }
 
-  /// Deletes the stored API key.
-  static Future<void> deleteApiKey() async {
+  /// Check if an API key has been stored.
+  Future<bool> hasApiKey() async {
+    final key = await getApiKey();
+    return key != null && key.isNotEmpty;
+  }
+
+  /// Delete the stored API key.
+  Future<void> deleteApiKey() async {
     await _storage.delete(key: _apiKeyKey);
+  }
+
+  /// Validate that the key looks like a valid Gemini API key format.
+  static bool isValidApiKeyFormat(String key) {
+    return key.startsWith('AIza') && key.length >= 30;
   }
 }

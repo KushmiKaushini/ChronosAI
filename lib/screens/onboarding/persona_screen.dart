@@ -1,22 +1,42 @@
 // ============================================================================
 // ChronosAI — Persona Selection Screen (Onboarding Step 1)
 // Author: K K K Ekanayake
-// Task: TASK-002 — Material 3 Dark Theme System + GoRouter Configuration
+// Task: TASK-005 — Wire Up Onboarding Flow
 //
-// TODO: Implement in Phase 2 (Core Data + Onboarding)
-// This is a placeholder screen for routing verification.
+// Saves selected persona to Riverpod state and Isar DB, then navigates
+// to the API key screen.
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/app_constants.dart';
+import '../../providers/app_providers.dart';
 
-class PersonaScreen extends StatelessWidget {
+class PersonaScreen extends ConsumerWidget {
   const PersonaScreen({super.key});
 
+  Future<void> _onPersonaSelected(
+    BuildContext context,
+    WidgetRef ref,
+    PersonaType selectedPersona,
+  ) async {
+    // Update Riverpod state
+    ref.read(personaProvider.notifier).state = selectedPersona;
+
+    // Persist to DB
+    final userRepo = ref.read(userProfileRepositoryProvider);
+    await userRepo.updatePersona(selectedPersona.name);
+
+    // Navigate to API key screen
+    if (context.mounted) {
+      context.go('/onboarding/api-key');
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -48,7 +68,7 @@ class PersonaScreen extends StatelessWidget {
                 title: 'Professional',
                 description: 'I want to balance career goals with personal growth.',
                 icon: Icons.work_outline_rounded,
-                onTap: () => context.go('/onboarding/api-key'),
+                onTap: () => _onPersonaSelected(context, ref, PersonaType.professional),
               ),
               const SizedBox(height: 16),
               _PersonaCard(
@@ -56,13 +76,7 @@ class PersonaScreen extends StatelessWidget {
                 title: 'Student',
                 description: 'I want to stay on top of studies and build good habits.',
                 icon: Icons.school_outlined,
-                onTap: () => context.go('/onboarding/api-key'),
-              ),
-              const Spacer(),
-              Text(
-                'TODO: Implement in Phase 2',
-                style: Theme.of(context).textTheme.bodySmall,
-                textAlign: TextAlign.center,
+                onTap: () => _onPersonaSelected(context, ref, PersonaType.student),
               ),
             ],
           ),

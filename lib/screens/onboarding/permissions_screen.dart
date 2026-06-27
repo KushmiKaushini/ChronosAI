@@ -1,20 +1,39 @@
 // ============================================================================
 // ChronosAI — Permissions Screen (Onboarding Step 3)
 // Author: K K K Ekanayake
-// Task: TASK-002 — Material 3 Dark Theme System + GoRouter Configuration
+// Task: TASK-005 — Wire Up Onboarding Flow
 //
-// TODO: Implement in Phase 2 (Core Data + Onboarding)
-// This is a placeholder screen for routing verification.
+// Requests microphone permission, marks onboarding complete in DB,
+// and navigates to home. Graceful degradation if permission denied.
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-class PermissionsScreen extends StatelessWidget {
+import '../../providers/app_providers.dart';
+import '../../repositories/user_profile_repository.dart';
+
+class PermissionsScreen extends ConsumerWidget {
   const PermissionsScreen({super.key});
 
+  Future<void> _onGrantContinue(BuildContext context, WidgetRef ref) async {
+    // Request microphone permission
+    final status = await Permission.microphone.request();
+
+    // Graceful degradation: proceed regardless of permission result
+    // Mark onboarding complete in DB
+    final userRepo = ref.read(userProfileRepositoryProvider);
+    await userRepo.markOnboardingComplete();
+
+    if (context.mounted) {
+      context.go('/home');
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -79,14 +98,8 @@ class PermissionsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () => context.go('/home'),
+                onPressed: () => _onGrantContinue(context, ref),
                 child: const Text('Grant & Continue'),
-              ),
-              const Spacer(),
-              Text(
-                'TODO: Implement in Phase 2',
-                style: Theme.of(context).textTheme.bodySmall,
-                textAlign: TextAlign.center,
               ),
             ],
           ),

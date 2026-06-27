@@ -1,7 +1,7 @@
 // ============================================================================
 // ChronosAI — GoRouter Configuration
 // Author: K K K Ekanayake
-// Task: TASK-002 — Material 3 Dark Theme System + GoRouter Configuration
+// Task: TASK-005 — Wire Up Onboarding Flow
 //
 // Routes:
 //   /onboarding/persona
@@ -15,11 +15,13 @@
 //   /settings
 //
 // Redirect: if onboarding not complete → /onboarding/persona
+//           (checks Isar DB for onboarding state)
 // ============================================================================
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../repositories/user_profile_repository.dart';
 import '../screens/onboarding/persona_screen.dart';
 import '../screens/onboarding/api_key_screen.dart';
 import '../screens/onboarding/permissions_screen.dart';
@@ -29,35 +31,29 @@ import '../screens/plan/year_plan_screen.dart';
 import '../screens/habits/habits_screen.dart';
 import '../screens/journal/journal_screen.dart';
 import '../screens/settings/settings_screen.dart';
+import '../services/isar_service.dart';
 
 /// Global navigator key for GoRouter.
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-/// Whether onboarding has been completed.
-/// TODO: Replace with persistent state check (SharedPreferences / Isar) in Phase 2.
-bool _isOnboardingComplete = false;
 
 /// GoRouter configuration for ChronosAI.
 /// All routes are defined here. Redirect logic ensures users who haven't
 /// completed onboarding are sent to the persona selection screen.
 final GoRouter appRouter = GoRouter(
   navigatorKey: navigatorKey,
-  initialLocation: '/home',
-  redirect: (BuildContext context, GoRouterState state) {
-    final bool isOnboardingRoute = state.matchedLocation.startsWith('/onboarding');
+  initialLocation: '/onboarding/persona',
+  redirect: (context, state) async {
+    // Check onboarding status from DB
+    final isar = IsarService.instance;
+    if (!isar.isInitialized) return null;
 
-    // If onboarding is not complete and user is not already on an onboarding
-    // route, redirect to the first onboarding screen.
-    if (!_isOnboardingComplete && !isOnboardingRoute) {
-      return '/onboarding/persona';
-    }
+    final profileRepo = UserProfileRepository();
+    final isComplete = await profileRepo.isOnboardingComplete();
+    final isOnboardingRoute = state.matchedLocation.startsWith('/onboarding');
 
-    // If onboarding is complete and user tries to access onboarding, send home.
-    if (_isOnboardingComplete && isOnboardingRoute) {
-      return '/home';
-    }
-
-    return null; // No redirect needed
+    if (!isComplete && !isOnboardingRoute) return '/onboarding/persona';
+    if (isComplete && isOnboardingRoute) return '/home';
+    return null;
   },
   routes: [
     // ── Onboarding Flow ───────────────────────────────────────────────────
@@ -145,8 +141,3 @@ final GoRouter appRouter = GoRouter(
     ),
   ),
 );
-
-/// Call this after successful onboarding completion to enable main app routes.
-void completeOnboarding() {
-  _isOnboardingComplete = true;
-}
