@@ -35,6 +35,13 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    // Fix for isar_flutter_libs which uses deprecated package attribute in manifest
+    packaging {
+        resources {
+            excludes += setOf("META-INF/MANIFEST.MF")
+        }
+    }
 }
 
 flutter {
