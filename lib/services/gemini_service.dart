@@ -389,7 +389,7 @@ class GeminiService extends ChangeNotifier {
       for (final m in context.overdueMilestones.take(3)) {
         final daysOverdue = DateTime.now().difference(m.dueDate).inDays;
         buffer.writeln(
-          '  - "${m.title}" — ${daysOverdue} days overdue',
+          '  - "${m.title}" — $daysOverdue days overdue',
         );
       }
     }

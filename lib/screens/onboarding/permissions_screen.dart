@@ -13,16 +13,15 @@ import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../providers/app_providers.dart';
-import '../../repositories/user_profile_repository.dart';
 
 class PermissionsScreen extends ConsumerWidget {
   const PermissionsScreen({super.key});
 
   Future<void> _onGrantContinue(BuildContext context, WidgetRef ref) async {
-    // Request microphone permission
-    final status = await Permission.microphone.request();
+    // Request microphone permission (result ignored — graceful degradation)
+    await Permission.microphone.request();
 
-    // Graceful degradation: proceed regardless of permission result
+    // Mark onboarding complete regardless of permission result
     // Mark onboarding complete in DB
     final userRepo = ref.read(userProfileRepositoryProvider);
     await userRepo.markOnboardingComplete();

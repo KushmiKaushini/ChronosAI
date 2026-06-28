@@ -5,6 +5,7 @@
 // ============================================================================
 
 /// Application-wide constants for ChronosAI.
+library;
 
 /// App metadata
 const String kAppName = 'ChronosAI';

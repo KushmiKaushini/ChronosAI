@@ -10,8 +10,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../config/app_constants.dart';
-
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -37,11 +35,11 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Card(
+            const Card(
               child: ListTile(
-                leading: const Icon(Icons.info_outline_rounded),
-                title: const Text('Version'),
-                subtitle: Text('$kAppName v$kAppVersion'),
+                leading: Icon(Icons.info_outline_rounded),
+                title: Text('Version'),
+                subtitle: Text('ChronosAI v1.0.0'),
               ),
             ),
             const SizedBox(height: 24),

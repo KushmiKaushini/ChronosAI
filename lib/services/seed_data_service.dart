@@ -347,7 +347,7 @@ class SeedDataService {
         description: template.description,
         category: template.category.name,
         priority: template.priority,
-        targetDate: now.add(Duration(days: 365)),
+        targetDate: now.add(const Duration(days: 365)),
         createdDate: now,
         status: 'active',
         progress: 0.0,

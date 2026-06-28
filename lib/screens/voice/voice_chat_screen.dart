@@ -407,7 +407,7 @@ class _VoiceChatScreenState extends ConsumerState<VoiceChatScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AiGlowIndicator(
+            const AiGlowIndicator(
               voiceState: VoiceState.idle,
               size: 100,
             ),
