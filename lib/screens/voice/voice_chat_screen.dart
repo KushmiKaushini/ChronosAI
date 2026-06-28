@@ -269,27 +269,6 @@ class _VoiceChatScreenState extends ConsumerState<VoiceChatScreen> {
     }
   }
 
-  /// Returns the current VoiceState based on Gemini and Audio service states.
-  VoiceState _getCurrentVoiceState(
-    GeminiService geminiService,
-    AudioService audioService,
-  ) {
-    // Audio service state takes priority during recording
-    if (audioService.isRecording) {
-      return VoiceState.listening;
-    }
-    // Map Gemini state to VoiceState
-    final geminiState = geminiService.state;
-    if (geminiState is GeminiStreaming) {
-      return VoiceState.speaking;
-    } else if (geminiState is GeminiConnecting) {
-      return VoiceState.thinking;
-    } else if (geminiState is GeminiError) {
-      return VoiceState.idle;
-    }
-    return VoiceState.idle;
-  }
-
   @override
   Widget build(BuildContext context) {
     final geminiService = ref.watch(geminiServiceProvider);
@@ -297,7 +276,6 @@ class _VoiceChatScreenState extends ConsumerState<VoiceChatScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final voiceState = _getCurrentVoiceState(geminiService, audioService);
     final isLocalMode = geminiService.state is GeminiLocalMode;
     final isError = geminiService.state is GeminiError;
     final isDemoMode = !geminiService.isLiveMode;
@@ -429,7 +407,7 @@ class _VoiceChatScreenState extends ConsumerState<VoiceChatScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AiGlowIndicator(
+            const AiGlowIndicator(
               voiceState: VoiceState.idle,
               size: 100,
             ),
