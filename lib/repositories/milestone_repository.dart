@@ -11,16 +11,18 @@ class MilestoneRepository {
   Future<int> create(Milestone milestone) => _isar.milestones.put(milestone);
   Future<Milestone?> getById(int id) => _isar.milestones.get(id);
   Future<List<Milestone>> getAll() => _isar.milestones.where().findAll();
-  Future<List<Milestone>> getByGoalId(int goalId) =>
-      _isar.milestones.filter().goalEqualTo(goalId).findAll();
+  Future<List<Milestone>> getByGoalId(int goalId) async {
+    final all = await getAll();
+    return all.where((m) => m.goal.value?.id == goalId).toList();
+  }
+
   Future<List<Milestone>> getOverdue() async {
     final now = DateTime.now();
-    return _isar.milestones
+    final allBeforeNow = await _isar.milestones
         .filter()
         .dueDateLessThan(now)
-        .and()
-        .statusNotEqualTo('completed')
         .findAll();
+    return allBeforeNow.where((m) => m.status != 'completed').toList();
   }
 
   Future<bool> delete(int id) => _isar.milestones.delete(id);

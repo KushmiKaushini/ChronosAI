@@ -3,7 +3,6 @@
 
 import 'package:isar/isar.dart';
 import '../models/goal.dart';
-import '../models/milestone.dart';
 import '../services/isar_service.dart';
 
 class GoalRepository {
