@@ -7,8 +7,6 @@
 // ============================================================================
 
 import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -141,7 +139,7 @@ class AudioService extends ChangeNotifier {
       _currentRecordingPath = '${tempDir.path}/chronosai_recording_$timestamp.pcm';
 
       // Configure and start the recorder.
-      final recordConfig = RecordConfig(
+      const recordConfig = RecordConfig(
         encoder: AudioConfig.encoder,
         sampleRate: AudioConfig.sampleRate,
         numChannels: AudioConfig.channels,
@@ -323,13 +321,15 @@ class AudioService extends ChangeNotifier {
     try {
       final currentAmplitude = await _recorder.getAmplitude();
 
-      // Normalize amplitude: dBFS range is typically -160.0 to 0.0.
-      // Map from [-160, 0] to [0.0, 1.0].
-      final normalizedAmplitude = ((currentAmplitude + 160.0) / 160.0).clamp(0.0, 1.0);
+      // Amplitude.current returns dBFS (typically -160.0 to 0.0 silence→loud).
+      final double dbLevel = currentAmplitude.current;
+
+      // Normalize amplitude: map from [-160, 0] to [0.0, 1.0].
+      final normalizedAmplitude = ((dbLevel + 160.0) / 160.0).clamp(0.0, 1.0);
       amplitude = normalizedAmplitude;
 
       // VAD: check if amplitude is below silence threshold.
-      if (currentAmplitude < AudioConfig.silenceThresholdDb) {
+      if (dbLevel < AudioConfig.silenceThresholdDb) {
         _silenceDuration += AudioConfig.amplitudeMonitorIntervalMs / 1000.0;
 
         if (_silenceDuration >= AudioConfig.silenceAutoStopSeconds) {
