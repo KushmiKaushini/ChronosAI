@@ -22,6 +22,7 @@ class ApiKeyScreen extends ConsumerStatefulWidget {
 
 class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   final TextEditingController _controller = TextEditingController();
+  final SecureStorageService _secureStorage = SecureStorageService();
   String? _errorMessage;
 
   @override
@@ -30,16 +31,10 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     super.dispose();
   }
 
-  /// Validates Gemini API key format (starts with "AIza" and is 39 chars).
-  bool _isValidApiKey(String key) {
-    final trimmed = key.trim();
-    return trimmed.startsWith('AIza') && trimmed.length >= 39;
-  }
-
   Future<void> _onContinue() async {
     final key = _controller.text.trim();
 
-    if (!_isValidApiKey(key)) {
+    if (!SecureStorageService.isValidApiKeyFormat(key)) {
       setState(() {
         _errorMessage = 'Invalid API key format. Gemini keys start with "AIza".';
       });
@@ -51,7 +46,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     });
 
     // Save to secure storage
-    await SecureStorageService.saveApiKey(key);
+    await _secureStorage.saveApiKey(key);
 
     if (mounted) {
       context.go('/onboarding/permissions');
